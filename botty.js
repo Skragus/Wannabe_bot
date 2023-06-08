@@ -41,7 +41,6 @@ function grabCurrency(string) {
 }
 let exchangeRates = {};
 
-
 function convertCurrency(amount, currency) {
   let convertedRates = {};
 
@@ -104,20 +103,34 @@ function formatExchangeRates(exchangeRates) {
 function getFormattedRate(currency, rate) {
   switch (currency) {
     case "USD":
-      return rate.toLocaleString("en-US", { style: "currency", currency: "USD" });
+      return rate.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+      });
     case "EUR":
-      return rate.toLocaleString("en-US", { style: "currency", currency: "EUR" });
+      return rate.toLocaleString("en-US", {
+        style: "currency",
+        currency: "EUR",
+      });
     case "GBP":
-      return rate.toLocaleString("en-US", { style: "currency", currency: "GBP" });
+      return rate.toLocaleString("en-US", {
+        style: "currency",
+        currency: "GBP",
+      });
     case "BRL":
-      return rate.toLocaleString("en-US", { style: "currency", currency: "BRL" });
+      return rate.toLocaleString("en-US", {
+        style: "currency",
+        currency: "BRL",
+      });
     case "ISK":
       return rate.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "kr";
     default:
-      return rate.toLocaleString("en-US", { style: "currency", currency: currency });
+      return rate.toLocaleString("en-US", {
+        style: "currency",
+        currency: currency,
+      });
   }
 }
-
 
 // Event listener for receiving messages.
 client.on("messageCreate", async (message) => {
@@ -127,25 +140,54 @@ client.on("messageCreate", async (message) => {
     let prompt = message.content.slice(6);
     message.channel.send(prompt);
   }
+  if (message.content.startsWith("!flip")) {
+    message.channel.send(Math.random() < 0.5 ? 'Heads' : 'Tails');
+  }
+
+  if (message.content.startsWith("!joke")) {
+    axios
+      .get("https://v2.jokeapi.dev/joke/Any?type=single")
+      .then(function (response) {
+        let joke = response.data.joke;
+        message.channel.send(joke);
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+
+  if (message.content.startsWith("!meme")) {
+    axios
+      .get("https://meme-api.com/gimme")
+      .then(function (response) {
+        const memeUrl = response.data.url;
+        console.log(memeUrl);
+        message.channel.send({ files: [memeUrl] })
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+
   if (message.content.startsWith("!c ")) {
     let prompt = message.content.slice(3);
     const lowercaseContent = prompt.toLowerCase();
-    
+
     axios
-    .get(apiUrl)
-    .then(function (response) {
-      const rates = response.data.data;
-      numericValue = parseFloat(prompt);
-      for (const item in rates) {
-        exchangeRates[item] = rates[item].value;
-      }
-      if (isNaN(numericValue)) {
-        return Promise.reject(new Error("Invalid numeric value"));
-      } else {
-        try {
-          grabCurrency(lowercaseContent);
-          let msg = convertCurrency(numericValue, currency);
-          console.log(msg);
+      .get(apiUrl)
+      .then(function (response) {
+        const rates = response.data.data;
+        numericValue = parseFloat(prompt);
+        for (const item in rates) {
+          exchangeRates[item] = rates[item].value;
+        }
+        if (isNaN(numericValue)) {
+          return Promise.reject(new Error("Invalid numeric value"));
+        } else {
+          try {
+            grabCurrency(lowercaseContent);
+            let msg = convertCurrency(numericValue, currency);
+            console.log(msg);
             const formattedString = formatExchangeRates(msg);
             message.channel.send("```\n" + formattedString + "```");
           } catch (error) {
